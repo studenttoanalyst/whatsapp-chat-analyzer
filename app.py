@@ -235,19 +235,10 @@ if uploaded_file is not None:
             if not emoji_df.empty:
                 import seaborn as sns
                 import matplotlib.pyplot as plt
-                import matplotlib
-                import platform
-
-                # Platform-aware font for emojis
-                if platform.system() == "Windows":
-                    matplotlib.rcParams['font.family'] = 'Segoe UI Emoji'
-                elif platform.system() == "Darwin":  # Mac
-                    matplotlib.rcParams['font.family'] = 'Apple Color Emoji'
-                else:  # Linux / Streamlit Cloud
-                    matplotlib.rcParams['font.family'] = 'Noto Color Emoji'
 
                 # Top 5 emojis
                 top_emoji_df = emoji_df.head(5).copy()
+                # Replace empty emojis with placeholder
                 top_emoji_df['emoji'] = top_emoji_df['emoji'].apply(lambda x: x if x.strip() else "🔹")
 
                 # Plot
@@ -255,20 +246,19 @@ if uploaded_file is not None:
                 sns.barplot(x='emoji', y='count', data=top_emoji_df, palette='viridis', ax=ax)
 
                 ax.set_title(f"Top 5 Emojis for {selected_user}", fontsize=16, fontweight='bold')
-                ax.tick_params(axis='x', labelsize=18)  # emojis
+                ax.tick_params(axis='x', labelsize=18)  # x-axis shows emoji text
                 ax.tick_params(axis='y', labelsize=14)
                 ax.set_xlabel("Emoji", fontsize=14)
                 ax.set_ylabel("Count", fontsize=14)
 
                 # Show counts above bars
                 for i, row in top_emoji_df.iterrows():
-                    ax.text(i, row['count'] + 0.1, str(row['count']), ha='center', va='bottom', fontsize=12)
+                    ax.text(i, row['count'] + 0.1, str(row['count']),
+                            ha='center', va='bottom', fontsize=12)
 
                 plt.tight_layout()
                 st.pyplot(fig)
             else:
                 st.info("No emojis found for this user")
-
-
 
 
