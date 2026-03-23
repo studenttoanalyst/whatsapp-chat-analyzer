@@ -236,47 +236,38 @@ if uploaded_file is not None:
                 import seaborn as sns
                 import matplotlib.pyplot as plt
                 import matplotlib
+                import platform
 
-                # Ensure emoji-supporting font
-                matplotlib.rcParams['font.family'] = 'Segoe UI Emoji'  # Windows
-                # Mac: 'Apple Color Emoji', Linux: 'Noto Color Emoji'
+                # Platform-aware font for emojis
+                if platform.system() == "Windows":
+                    matplotlib.rcParams['font.family'] = 'Segoe UI Emoji'
+                elif platform.system() == "Darwin":  # Mac
+                    matplotlib.rcParams['font.family'] = 'Apple Color Emoji'
+                else:  # Linux / Streamlit Cloud
+                    matplotlib.rcParams['font.family'] = 'Noto Color Emoji'
 
-                # Take top 5 emojis
+                # Top 5 emojis
                 top_emoji_df = emoji_df.head(5).copy()
+                top_emoji_df['emoji'] = top_emoji_df['emoji'].apply(lambda x: x if x.strip() else "🔹")
 
-                # Optional: placeholder for invisible emojis
-                top_emoji_df['emoji'] = top_emoji_df['emoji'].apply(lambda x: x if x.strip() != "" else "🔹")
+                # Plot
+                fig, ax = plt.subplots(figsize=(7, 6))
+                sns.barplot(x='emoji', y='count', data=top_emoji_df, palette='viridis', ax=ax)
 
-                # Create figure
-                fig, ax = plt.subplots(figsize=(7, 8))
-
-                # Barplot
-                sns.barplot(
-                    x='emoji',
-                    y='count',
-                    data=top_emoji_df,
-                    palette='viridis',
-                    ax=ax
-                )
-
-                ax.set_title(f"Top 5 Emojis for {selected_user}")
-                ax.tick_params(axis='x', labelsize=16)  # x-axis labels (emojis)
+                ax.set_title(f"Top 5 Emojis for {selected_user}", fontsize=16, fontweight='bold')
+                ax.tick_params(axis='x', labelsize=18)  # emojis
                 ax.tick_params(axis='y', labelsize=14)
                 ax.set_xlabel("Emoji", fontsize=14)
                 ax.set_ylabel("Count", fontsize=14)
 
                 # Show counts above bars
                 for i, row in top_emoji_df.iterrows():
-                    ax.text(
-                        i, row['count'] + 0.1, str(row['count']),
-                        ha='center', va='bottom', fontsize=12
-                    )
+                    ax.text(i, row['count'] + 0.1, str(row['count']), ha='center', va='bottom', fontsize=12)
 
                 plt.tight_layout()
                 st.pyplot(fig)
             else:
                 st.info("No emojis found for this user")
-
 
 
 
