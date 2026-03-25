@@ -77,20 +77,11 @@ if uploaded_file is not None:
         st.title("Monthly Timeline")
         timeline = helper.monthly_timeline(selected_user, df)
 
-        # fig, ax = plt.subplots()
-        # ax.plot(timeline['time'], timeline['message'])
-        # plt.xticks(rotation=90)
-        # st.pyplot(fig)
-        fig, ax = plt.subplots(figsize=(12, 6))
-
+        fig, ax = plt.subplots()
         ax.plot(timeline['time'], timeline['message'])
-
-        # 🔥 MAIN FIX (overlap remove)
-        ax.set_xticks(range(0, len(timeline['time']), 2))  # har 2nd label
-        ax.set_xticklabels(timeline['time'][::2], rotation=45)
-
-        plt.tight_layout()
+        plt.xticks(rotation=90)
         st.pyplot(fig)
+
         st.title("Daily Timeline")
         daily = helper.daily_timeline(selected_user, df)
 
@@ -208,3 +199,4 @@ if uploaded_file is not None:
                 st.pyplot(fig)
             else:
                 st.info("No emojis found")
+
