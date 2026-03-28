@@ -79,7 +79,7 @@ if uploaded_file is not None:
 
         fig, ax = plt.subplots()
         ax.plot(timeline['time'], timeline['message'])
-        plt.xticks(rotation=90)
+        plt.xticks(ticks=range(0, len(timeline), 5),rotation = 90)
         st.pyplot(fig)
 
         st.title("Daily Timeline")
