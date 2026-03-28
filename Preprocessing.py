@@ -2,16 +2,27 @@ import re
 import pandas as pd
 
 
-def preprocess(data: str) -> pd.DataFrame:
+def preprocess(data) -> pd.DataFrame:
     """
     Universal WhatsApp chat preprocessing (Android + iPhone)
+    Robust for Streamlit Cloud and mixed formats.
     """
 
-    # -------------------- Clean Unicode --------------------
+    # -------------------- Decode & Normalize --------------------
+    if isinstance(data, bytes):
+        data = data.decode('utf-8', errors='ignore')
+
+    # Normalize line endings
+    data = data.replace('\r\n', '\n').replace('\r', '\n')
+
+    # Clean hidden unicode characters
     data = data.replace('\u202F', ' ')
     data = data.replace('\u200E', '')
     data = data.replace('\u202A', '')
     data = data.replace('\u202C', '')
+
+    # Strip each line (important for iPhone formats)
+    data = "\n".join([line.strip() for line in data.split("\n") if line.strip()])
 
     # -------------------- Patterns --------------------
     pattern_iphone = r'\[\d{1,2}[/-]\d{1,2}[/-]\d{2,4},?\s\d{1,2}:\d{2}(?::\d{2})?(?:[\s\u202F]+)?(?:AM|PM|am|pm)?\]\s'
@@ -20,16 +31,18 @@ def preprocess(data: str) -> pd.DataFrame:
     # -------------------- Detect Format --------------------
     if re.search(pattern_iphone, data):
         pattern = pattern_iphone
-        is_iphone = True
     elif re.search(pattern_android, data):
         pattern = pattern_android
-        is_iphone = False
     else:
-        raise ValueError("Unsupported WhatsApp format")
+        # Fallback to android pattern instead of crashing
+        pattern = pattern_android
 
     # -------------------- Split Data --------------------
-    messages = re.split(pattern, data)[1:]
+    messages = re.split(pattern, data)
     dates = re.findall(pattern, data)
+
+    # Remove first empty split
+    messages = messages[1:]
 
     # -------------------- Clean Dates --------------------
     clean_dates = []
@@ -44,10 +57,10 @@ def preprocess(data: str) -> pd.DataFrame:
         'date_str': clean_dates
     })
 
-    # -------------------- Convert to Datetime --------------------
+    # -------------------- Datetime Conversion --------------------
     df['date'] = pd.to_datetime(df['date_str'], errors='coerce')
 
-    # 🔥 IMPORTANT: remove invalid dates
+    # Drop invalid rows safely
     df = df.dropna(subset=['date'])
 
     df.drop(columns=['date_str'], inplace=True)
@@ -57,19 +70,24 @@ def preprocess(data: str) -> pd.DataFrame:
     msgs = []
 
     for message in df['user_message']:
-        entry = re.split(r'([^:]+):\s', message)
+        # Split only on first occurrence of "Name: message"
+        parts = re.split(r'^([^:]+):\s', message)
 
-        if len(entry) > 2:
-            users.append(entry[1])
-            msgs.append(entry[2])
+        if len(parts) >= 3:
+            users.append(parts[1])
+            msgs.append(parts[2])
         else:
             users.append('group_notification')
-            msgs.append(entry[0])
+            msgs.append(parts[0])
 
     df['user'] = users
     df['message'] = msgs
 
     df.drop(columns=['user_message'], inplace=True)
+
+    # -------------------- Clean Columns --------------------
+    df['user'] = df['user'].fillna("Unknown").astype(str)
+    df['message'] = df['message'].fillna("").astype(str)
 
     # -------------------- Time Features --------------------
     df['only_date'] = df['date'].dt.date
@@ -79,10 +97,8 @@ def preprocess(data: str) -> pd.DataFrame:
     df['day'] = df['date'].dt.day
     df['day_name'] = df['date'].dt.day_name()
 
-    df['hour'] = df['date'].dt.hour
-    df['hour'] = df['hour'].fillna(0).astype(int)
-
-    df['minute'] = df['date'].dt.minute
+    df['hour'] = df['date'].dt.hour.fillna(0).astype(int)
+    df['minute'] = df['date'].dt.minute.fillna(0).astype(int)
 
     # -------------------- Time Period --------------------
     df['period'] = df['hour'].apply(_get_time_period)
