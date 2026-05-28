@@ -1,0 +1,36 @@
+# ── Core framework ─────────────────────────────────────────────────────────
+streamlit
+
+# ── Data & numerics ────────────────────────────────────────────────────────
+pandas
+numpy
+
+# ── Visualisation ──────────────────────────────────────────────────────────
+matplotlib
+seaborn
+
+# ── NLP utilities ──────────────────────────────────────────────────────────
+wordcloud
+urlextract
+emoji
+
+# ── AI Sentiment Analysis (NEW) ────────────────────────────────────────────
+# VADER: rule-based sentiment analyser — works with English, Roman Urdu,
+# emojis and mixed-language text with zero training required.
+vaderSentiment
+
+# ── (Optional) upgrade path ────────────────────────────────────────────────
+# Uncomment the lines below to swap VADER for a transformer model later:
+# transformers>=4.30
+# torch>=2.0
+# sentencepiece
+streamlit
+pandas
+numpy
+matplotlib
+seaborn
+wordcloud
+urlextract
+emoji
+vaderSentiment
+scikit-learn
