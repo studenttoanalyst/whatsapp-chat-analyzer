@@ -421,8 +421,10 @@ if uploaded_file is not None:
                     return "background-color: #ffebee; color: #b71c1c;"
                 return "background-color: #f5f5f5;"
 
-            styled = u_display.style.applymap(
-                _colour_score, subset=["Mean Score"]
+
+            styled = u_display.style.map(
+                lambda v: _colour_score(v),
+                subset=["Mean Score"]
             ).format({"Mean Score": "{:.3f}"})
 
             st.dataframe(styled, use_container_width=True)
